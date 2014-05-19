@@ -7,32 +7,39 @@ start() {
     then
         echo "Warning : gearman not running"
     fi
+
+    dirs_ok=false
     for rep in /var/run /var/log
     do
         if test -d $rep && test -w $rep
         then
-            nohup python ./worker.py >>/var/log/wapyd.log&
-            echo $! > /var/run/wapyd.pid
-            exit 0
+            dirs_ok=true
         else
-            echo "Some system dirs are not writeable, launch this script with root user"
-            exit 1
+            dirs_ok=false
         fi
     done
+
+    if [[ $dirs_ok ]]
+    then
+        nohup python ./worker.py >>/var/log/wapyd.log&
+        echo $! > /var/run/wapyd.pid
+        echo "Worker started"
+    else
+        echo "Some system dirs are not writeable, launch this script with root user"
+    fi
 }
 
 stop() {
     pid=`cat /var/run/wapyd.pid`
     if [[ $pid == "" ]]
     then
-        echo "No process running"
+        echo "No process running, use start to launch python worker"
         exit 1
     fi
     kill $pid
 
     echo "" > /var/run/wapyd.pid
     echo "Worker stopped" >>/var/log/wapyd.log
-    exit 0
 }
 
 status() {
@@ -42,6 +49,14 @@ status() {
         echo "gearman not running"
     else
         echo "gearman running, pid $gearman_pid"
+    fi
+
+    redis_pid=`pgrep redis`
+    if [[ gearman_pid == "" ]]
+    then
+        echo "redis not running"
+    else
+        echo "redis running, pid $redis_pid"
     fi
 
     pid=`cat /var/run/wapyd.pid`
@@ -59,6 +74,9 @@ case $1 in
         ;;
         stop)
                 stop
+        ;;
+        restart)
+                stop; start;
         ;;
         status)
                 status

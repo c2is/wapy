@@ -9,7 +9,7 @@ class GearmanWorker(gearman.GearmanWorker):
         return super(GearmanWorker, self).on_job_execute(current_job)
 
     def on_job_exception(self, current_job, exc_info):
-        sysdialog.logger.info("Job failed " + exc_info)
+        sysdialog.logger.error("Job failed " + str(exc_info))
         return super(GearmanWorker, self).on_job_exception(current_job, exc_info)
 
     def on_job_complete(self, current_job, job_result):
