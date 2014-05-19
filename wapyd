@@ -1,0 +1,75 @@
+#!/bin/bash
+
+start() {
+
+    gearman_pid=`pgrep gearman`
+    if [[ gearman_pid == "" ]]
+    then
+        echo "Warning : gearman not running"
+    fi
+    for rep in /var/run /var/log
+    do
+        if test -d $rep && test -w $rep
+        then
+            nohup python ./worker.py >>/var/log/wapyd.log&
+            echo $! > /var/run/wapyd.pid
+            exit 0
+        else
+            echo "Some system dirs are not writeable, launch this script with root user"
+            exit 1
+        fi
+    done
+}
+
+stop() {
+    pid=`cat /var/run/wapyd.pid`
+    if [[ $pid == "" ]]
+    then
+        echo "No process running"
+        exit 1
+    fi
+    kill $pid
+
+    echo "" > /var/run/wapyd.pid
+    echo "Worker stopped" >>/var/log/wapyd.log
+    exit 0
+}
+
+status() {
+    gearman_pid=`pgrep gearman`
+    if [[ gearman_pid == "" ]]
+    then
+        echo "gearman not running"
+    else
+        echo "gearman running, pid $gearman_pid"
+    fi
+
+    pid=`cat /var/run/wapyd.pid`
+    if [[ $pid == "" ]]
+    then
+        echo "Python worker not running"
+    else
+        echo "Python worker running, pid $pid"
+    fi
+}
+
+case $1 in
+        start)
+                start
+        ;;
+        stop)
+                stop
+        ;;
+        status)
+                status
+        ;;
+        *)
+                echo "You must give a command : start, stop, restart or status"
+        ;;
+esac
+exit 1
+
+
+
+
+
