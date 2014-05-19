@@ -50,6 +50,11 @@ def write_cap_file(job):
     capfile.close()
 
 
+def delete_stage(job):
+    dict = json.loads(job.data)
+    os.unlink(projects_path + "/" + dict.get("projectId") + "/config/deploy/" + dict.get("stageId") + ".rb")
+
+
 def proj_dir(proj_id):
     if not os.path.isdir(projects_path + "/" + proj_id):
         try:
