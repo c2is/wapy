@@ -86,15 +86,29 @@ def p_work(job):
         redis_flow.append(job.handle, "<br>" + line.rstrip())
 
 
-def cap_work(job):
+def cap_work(gearman_worker, job):
     global redis_flow
     dict = json.loads(job.data)
+    command_line = dict.get("capCommand").replace("cap", cap_command)
+    command_line = command_line.replace("capify", capify_command)
 
-    logger.info("Executing cd " + projects_path + "/" + dict.get("projectId") + "; " + dict.get("capCommand"))
-    p = subprocess.Popen("cd " + projects_path + "/" + dict.get("projectId") + "; " + dict.get("capCommand"), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    logger.info("Executing cd " + projects_path + "/" + dict.get("projectId") + "; " + command_line)
+    p = subprocess.Popen("cd " + projects_path + "/" + dict.get("projectId") + "; " + command_line, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
     for line in iter(p.stdout.readline, ''):
         redis_flow.append(job.handle, "<br>" + line.rstrip())
         logger.info(line.rstrip())
+
+    error = False
+    for line in iter(p.stderr.readline, ''):
+        error = True
+        redis_flow.append(job.handle, "<br>" + line.rstrip())
+        logger.error(line.rstrip())
+
+    if error:
+        raise RuntimeError('CapistranoTaskFailed')
+
+    logger.info("Execution terminated with return code ")
 
 
 def signal_term_handler(signal, frame):
