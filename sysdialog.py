@@ -7,6 +7,7 @@ import signal
 import subprocess
 import logging
 import redis
+import time
 from logging.handlers import RotatingFileHandler
 
 
@@ -92,23 +93,27 @@ def cap_work(gearman_worker, job):
     command_line = dict.get("capCommand").replace("cap", cap_command)
     command_line = command_line.replace("capify", capify_command)
 
+    redis_flow.append(job.handle, "<br>" + command_line)
     logger.info("Executing cd " + projects_path + "/" + dict.get("projectId") + "; " + command_line)
-    p = subprocess.Popen("cd " + projects_path + "/" + dict.get("projectId") + "; " + command_line, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(command_line, shell=True, stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE, cwd=projects_path + "/" + dict.get("projectId"))
 
+    sleeping_time = 0.5
     for line in iter(p.stdout.readline, ''):
         redis_flow.append(job.handle, "<br>" + line.rstrip())
+        time.sleep(sleeping_time)
         logger.info(line.rstrip())
 
-    error = False
     for line in iter(p.stderr.readline, ''):
-        error = True
         redis_flow.append(job.handle, "<br>" + line.rstrip())
+        time.sleep(sleeping_time)
         logger.error(line.rstrip())
 
-    if error:
+    out, err = p.communicate()
+    if p.returncode > 0:
         raise RuntimeError('CapistranoTaskFailed')
 
-    logger.info("Execution terminated with return code ")
+    logger.info("Execution terminated with return code " + str(p.returncode))
 
 
 def signal_term_handler(signal, frame):
