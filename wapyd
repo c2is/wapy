@@ -59,7 +59,14 @@ status() {
         echo "redis running, pid $redis_pid"
     fi
 
-    pid=`cat /var/run/wapyd.pid`
+    if [ -f /var/run/wapyd.pid ]
+    then
+        pid=`cat /var/run/wapyd.pid`
+    else
+        pid=""
+    fi
+
+
     if [[ $pid == "" ]]
     then
         echo "Python worker not running"
