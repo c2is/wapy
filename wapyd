@@ -44,7 +44,7 @@ stop() {
 
 status() {
     gearman_pid=`pgrep gearman`
-    if [[ gearman_pid == "" ]]
+    if [[ $gearman_pid == "" ]]
     then
         echo "gearman not running"
     else
@@ -52,11 +52,11 @@ status() {
     fi
 
     redis_pid=`pgrep redis`
-    if [[ gearman_pid == "" ]]
+    if [[ $redis_pid = "" ]]
     then
         echo "redis not running"
     else
-        echo "redis running, pid $redis_pid"
+        echo "redis running, pid HHG $redis_pid HH"
     fi
 
     if [ -f /var/run/wapyd.pid ]
