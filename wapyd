@@ -3,7 +3,7 @@
 start() {
 
     gearman_pid=`pgrep gearman`
-    if [[ gearman_pid == "" ]]
+    if [[ $gearman_pid == "" ]]
     then
         echo "Warning : gearman not running"
     fi
