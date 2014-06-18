@@ -56,7 +56,7 @@ status() {
     then
         echo "redis not running"
     else
-        echo "redis running, pid HHG $redis_pid HH"
+        echo "redis running, pid $redis_pid"
     fi
 
     if [ -f /var/run/wapyd.pid ]
