@@ -52,7 +52,7 @@ status() {
     fi
 
     redis_pid=`pgrep redis`
-    if [[ $redis_pid = "" ]]
+    if [[ $redis_pid == "" ]]
     then
         echo "redis not running"
     else
