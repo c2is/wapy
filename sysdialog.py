@@ -46,10 +46,11 @@ redis_flow = redis.Redis(connection_pool=redis_pool)
 def write_cap_file(job):
     dict = json.loads(job.data)
     proj_dir(dict.get("projectId"))
-    capfile = open(projects_path + "/" + dict.get("projectId") + "/config/deploy/" + dict.get("stageId") + ".rb", "w")
+    file_path = projects_path + "/" + dict.get("projectId") + "/config/deploy/" + dict.get("stageId") + ".rb"
+    capfile = open(file_path, "w")
     capfile.write(dict.get("content"))
     capfile.close()
-
+    os.chmod(file_path, 0600)
 
 def delete_stage(job):
     dict = json.loads(job.data)
