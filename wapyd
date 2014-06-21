@@ -1,6 +1,12 @@
 #!/bin/bash
 
 start() {
+    if [[ $1 == "" ]]
+    then
+        num='1'
+    else
+        num=$1
+    fi
 
     gearman_pid=`pgrep gearman`
     if [[ $gearman_pid == "" ]]
@@ -9,7 +15,7 @@ start() {
     fi
 
     dirs_ok=false
-    for rep in /var/run /var/log
+    for rep in /var/log
     do
         if test -d $rep && test -w $rep
         then
@@ -21,24 +27,29 @@ start() {
 
     if [[ $dirs_ok ]]
     then
-        nohup python ./worker.py >>/var/log/wapyd.log&
-        echo $! > /var/run/wapyd.pid
-        echo "Worker started"
+        for i in `seq 1 $num`
+           do
+           nohup python ./wapy_worker.py toto >>/var/log/wapyd.log&
+        done
+
+        echo $num" Workers started"
     else
         echo "Some system dirs are not writeable, launch this script with root user"
     fi
 }
 
 stop() {
-    pid=`cat /var/run/wapyd.pid`
+    pid=`pgrep -f wapy_worker.py`
     if [[ $pid == "" ]]
     then
         echo "No process running, use start to launch python worker"
         exit 1
+    else
+        for runPid in $pid
+        do
+            kill $runPid
+        done
     fi
-    kill $pid
-
-    echo "" > /var/run/wapyd.pid
     echo "Worker stopped" >>/var/log/wapyd.log
 }
 
@@ -59,25 +70,22 @@ status() {
         echo "redis running, pid $redis_pid"
     fi
 
-    if [ -f /var/run/wapyd.pid ]
-    then
-        pid=`cat /var/run/wapyd.pid`
-    else
-        pid=""
-    fi
-
-
+    pid=`pgrep -f wapy_worker.py`
     if [[ $pid == "" ]]
     then
-        echo "Python worker not running"
+        echo "No process running"
+        exit 1
     else
-        echo "Python worker running, pid $pid"
+        arr=($pid)
+        set -- $pid
+        echo ${#arr[@]}" workers running, pids "$pid
     fi
+    echo "Worker stopped" >>/var/log/wapyd.log
 }
 
 case $1 in
         start)
-                start
+                start $2
         ;;
         stop)
                 stop
@@ -89,7 +97,7 @@ case $1 in
                 status
         ;;
         *)
-                echo "You must give a command : start, stop, restart or status"
+                echo "You must give a command : start [number of worker to start], stop, restart or status"
         ;;
 esac
 exit 1
