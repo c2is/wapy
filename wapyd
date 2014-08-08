@@ -29,7 +29,7 @@ start() {
     then
         for i in `seq 1 $num`
            do
-            /sbin/start-stop-daemon -d /usr/local/wapy -c wapyd:adm -x ./wapy_worker.py -S -- $i
+            /sbin/start-stop-daemon -d /usr/local/wapy -c wapyd:adm -x ./wapy_worker.py -S -- $i &
            done
 
         status
