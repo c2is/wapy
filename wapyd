@@ -11,7 +11,7 @@ start() {
     gearman_pid=`pgrep gearman`
     if [[ $gearman_pid == "" ]]
     then
-        echo "Warning : gearman not running"
+        echo "Warning : gearman not running on this server"
     fi
 
     dirs_ok=false
@@ -29,7 +29,7 @@ start() {
     then
         for i in `seq 1 $num`
            do
-           nohup python ./wapy_worker.py $i >>/var/log/wapyd.log&
+           su wapyd; nohup python ./wapy_worker.py $i >>/var/log/wapyd.log&
         done
 
         echo $num" Workers started"
@@ -57,7 +57,7 @@ status() {
     gearman_pid=`pgrep gearman`
     if [[ $gearman_pid == "" ]]
     then
-        echo "gearman not running"
+        echo "gearman not running on this server"
     else
         echo "gearman running, pid $gearman_pid"
     fi
