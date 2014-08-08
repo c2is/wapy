@@ -29,8 +29,8 @@ start() {
     then
         for i in `seq 1 $num`
            do
-           su wapyd; nohup python ./wapy_worker.py $i >>/var/log/wapyd.log&
-        done
+            nohup ./wapy_worker.py $i >>/var/log/wapyd.log&
+           done
 
         echo $num" Workers started"
     else
