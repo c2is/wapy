@@ -29,7 +29,7 @@ start() {
     then
         for i in `seq 1 $num`
            do
-            nohup ./wapy_worker.py $i >>/var/log/wapyd.log&
+            /sbin/start-stop-daemon -d /usr/local/wapy -c wapyd:adm -x ./wapy_worker.py -S -- $i
            done
 
         echo $num" Workers started"
