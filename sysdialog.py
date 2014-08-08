@@ -17,7 +17,7 @@ logger.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter('%(asctime)s :: %(levelname)s :: %(message)s')
 # fichier en mode 'append', avec 1 backup et une taille max de 10Mo
-file_handler = RotatingFileHandler('/var/log/wapyd.log', 'a', 10000000, 1)
+file_handler = RotatingFileHandler('/var/log/wapyd/wapyd.log', 'a', 10000000, 1)
 file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)

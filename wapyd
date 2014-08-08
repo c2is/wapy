@@ -32,7 +32,7 @@ start() {
             /sbin/start-stop-daemon -d /usr/local/wapy -c wapyd:adm -x ./wapy_worker.py -S -- $i
            done
 
-        echo $num" Workers started"
+        status
     else
         echo "Some system dirs are not writeable, launch this script with root user"
     fi
