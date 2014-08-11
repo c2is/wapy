@@ -12,22 +12,15 @@ from logging.handlers import RotatingFileHandler
 
 
 logger = logging.getLogger()
-# on met le niveau du logger à DEBUG, comme ça il écrit tout
+# set logger level to DEBUG, thus all will be written
 logger.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter('%(asctime)s :: %(levelname)s :: %(message)s')
-# fichier en mode 'append', avec 1 backup et une taille max de 10Mo
+# file in 'append' mode, with 1 backup and a max size set to 10Mo
 file_handler = RotatingFileHandler('/var/log/wapyd/wapyd.log', 'a', 10000000, 1)
 file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
-# création d'un second handler qui va rediriger chaque écriture de log
-# sur la console
-#steam_handler = logging.StreamHandler()
-#steam_handler.setLevel(logging.DEBUG)
-#logger.addHandler(steam_handler)
-# levels : CRITICAL ERROR WARNING INFO DEBUG
-# example logger.info('Hello')
 
 config = ConfigParser.ConfigParser()
 config.read('wapy.cfg')
@@ -51,6 +44,7 @@ def write_cap_file(job):
     capfile.write(dict.get("content"))
     capfile.close()
     os.chmod(file_path, 0600)
+
 
 def delete_stage(job):
     dict = json.loads(job.data)
@@ -123,7 +117,3 @@ def signal_term_handler(signal, frame):
 
 
 signal.signal(signal.SIGTERM, signal_term_handler)
-
-
-
-
