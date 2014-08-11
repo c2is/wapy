@@ -1,5 +1,5 @@
 #WAPY AND WAPYD
-This is a part of the Wapistrano project. 
+This is a part of the Wapistrano [wapistrano](https://github.com/c2is/) project. 
 
 ##INSTALL
 ##Prerequisite
