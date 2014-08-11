@@ -29,7 +29,12 @@ start() {
     then
         for i in `seq 1 $num`
            do
-            /sbin/start-stop-daemon -d /usr/local/wapy -c wapyd:adm -x ./wapy_worker.py -S -- $i &
+                if [ "$(uname)" == 'Darwin' ]
+                  then
+                        /usr/local/wapy/wapy_worker.py $i &
+                  else
+                        /sbin/start-stop-daemon -d /usr/local/wapy -c wapyd:adm -x ./wapy_worker.py -S -- $i &
+                fi
            done
 
         status
