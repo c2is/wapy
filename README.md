@@ -1,5 +1,5 @@
 #WAPY AND WAPYD
-This is a part of the Wapistrano [wapistrano](https://github.com/c2is/) project. 
+This is a part of the  [Wapistrano](https://github.com/c2is/) project. 
 
 ##INSTALL
 ##Prerequisite
@@ -15,7 +15,8 @@ chmod 775 /var/log/wapyd/
 cd /usr/local/
 git clone git@gitlab.c2is.fr:a.cianfarani/wapy.git
 cd wapy
-./wapyd start
+cp wapyd /etc/init.d/
+update-rc.d wapyd defaults
 ```
 
 ###CHECK CONFIGURATIONS
@@ -23,11 +24,11 @@ Open wapyd.cfg and control/adapt values (projects' path, gearman port...)
 
 ###START WAPYD
 ```
-./wapyd start
+/etc/init.d/wapyd start
 ```
 
 ###DISPLAY STATUS INFORMATIONS
 ```
-./wapyd status
+/etc/init.d/wapyd status
 ```
 
