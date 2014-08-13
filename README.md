@@ -10,8 +10,9 @@ Please refer to Wapistrano readme, section about Capistrano server side.
 ```shell
 useradd wapyd -M -g adm -d /usr/local/wapy/
 mkdir /var/log/wapyd/
-chown -R wapyd:adm /usr/local/wapy/
+chgrp adm /var/log/wapyd/
 chmod 775 /var/log/wapyd/
+chown -R wapyd:adm /usr/local/wapy/
 su wapy
 ssh-keygen
 echo "Host *\n\tStrictHostKeyChecking no" > /usr/local/wapy/.ssh/config
