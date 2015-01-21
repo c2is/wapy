@@ -13,7 +13,7 @@ mkdir /var/log/wapyd/
 chgrp adm /var/log/wapyd/
 chmod 775 /var/log/wapyd/
 chown -R wapyd:adm /usr/local/wapy/
-su wapy
+su wapyd
 ssh-keygen
 echo "Host *\n\tStrictHostKeyChecking no" > /usr/local/wapy/.ssh/config
 cd /usr/local/
