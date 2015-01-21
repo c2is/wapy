@@ -8,7 +8,7 @@ Please refer to Wapistrano readme, section about Capistrano server side.
 ###Add a specific user and install packages in /usr/local:
 
 ```shell
-useradd wapyd -M -g adm -d /usr/local/wapy/
+useradd wapyd -m -g adm -d /usr/local/wapy/
 mkdir /var/log/wapyd/
 chgrp adm /var/log/wapyd/
 chmod 775 /var/log/wapyd/
