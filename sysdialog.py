@@ -11,6 +11,21 @@ import time
 from logging.handlers import RotatingFileHandler
 
 
+def follow(thefile):
+    global p
+    c = 100
+    thefile.seek(0, 2)
+    while True:
+        if p.poll() is not None:
+             c = c -1
+        if p.poll() is not None and c == 0:
+            break
+        line = thefile.readline()
+        if not line:
+            time.sleep(0.1)
+            continue
+        yield line
+
 logger = logging.getLogger()
 # set logger level to DEBUG, thus all will be written
 logger.setLevel(logging.DEBUG)
@@ -29,11 +44,12 @@ cap_command = config.get('Capistrano', 'cap_exec')
 capify_command = config.get('Capistrano', 'capify_exec')
 gearman_host = config.get('Gearman', 'host')
 gearman_port = config.get('Gearman', 'port')
-redis_host = config.get('Redis', 'host')
-redis_port = config.get('Redis', 'port')
 
-redis_pool = redis.ConnectionPool(host=redis_host, port=redis_port, db=0)
-redis_flow = redis.Redis(connection_pool=redis_pool)
+if config.get('Capistrano', 'cap_logger') == "redis":
+    redis_host = config.get('Redis', 'host')
+    redis_port = config.get('Redis', 'port')
+    redis_pool = redis.ConnectionPool(host=redis_host, port=redis_port, db=0)
+    redis_flow = redis.Redis(connection_pool=redis_pool)
 
 
 def write_cap_file(job):
@@ -66,7 +82,7 @@ def proj_dir(proj_id):
 
     if not os.path.isfile(projects_path + "/" + proj_id + "/Capfile"):
         try:
-            p = subprocess.Popen(capify_command + " "+ projects_path + "/" + proj_id, shell=True, stdout=subprocess.PIPE,
+            p = subprocess.Popen(capify_command.split() + " "+ projects_path + "/" + proj_id, shell=False, stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT)
         except OSError:
             logger.error("Cannot capify dir " + projects_path + "/" + proj_id)
@@ -74,37 +90,41 @@ def proj_dir(proj_id):
             logger.info("Capified " + projects_path + "/" + proj_id)
 
 
-def p_work(job):
-    global redis_flow
-    p = subprocess.Popen("ls -alrt", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    #print p.communicate()[0]
-    for line in iter(p.stdout.readline, ''):
-        redis_flow.append(job.handle, "<br>" + line.rstrip())
+def cap_log_append(job, line):
+    if config.get('Capistrano', 'cap_logger') == "redis":
+        global redis_flow
+        redis_flow.append(job.handle, line)
+
 
 
 def cap_work(gearman_worker, job):
-    global redis_flow
+    global p
     dict = json.loads(job.data)
     command_line = dict.get("capCommand").replace("cap", cap_command)
     command_line = command_line.replace("capify", capify_command)
 
-    redis_flow.append(job.handle, "<br>" + command_line)
+    cap_log_append(job, command_line)
     logger.info("Executing cd " + projects_path + "/" + dict.get("projectId") + "; " + command_line)
-    p = subprocess.Popen(command_line, shell=True, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE, cwd=projects_path + "/" + dict.get("projectId"))
 
-    sleeping_time = 0.5
-    for line in iter(p.stdout.readline, ''):
-        redis_flow.append(job.handle, "<br>" + line.rstrip())
-        time.sleep(sleeping_time)
-        logger.info(line.rstrip())
+    stdlogfile = dict.get("projectId") + command_line.replace(" ", "-").replace("/", "-") + ".log"
+    errlogfile = dict.get("projectId") + command_line.replace(" ", "-").replace("/", "-") + "-error.log"
+    stdoutput = open('/var/log/wapyd/' + stdlogfile, 'w+')
+    erroutput = open('/var/log/wapyd/' + errlogfile, 'w+')
 
-    for line in iter(p.stderr.readline, ''):
-        redis_flow.append(job.handle, "<br>" + line.rstrip())
-        time.sleep(sleeping_time)
-        logger.error(line.rstrip())
+    p = subprocess.Popen(command_line.split(), shell=False, stdout=stdoutput,
+                         stderr=stdoutput, cwd=projects_path + "/" + dict.get("projectId"))
 
-    out, err = p.communicate()
+
+    logfile = open('/var/log/wapyd/' + stdlogfile, "r")
+    loglines = follow(logfile)
+    for line in loglines:
+        cap_log_append(job, line)
+
+    logfile.close()
+    stdoutput.close()
+    erroutput.close()
+
+    p.communicate()
     if p.returncode > 0:
         raise RuntimeError('CapistranoTaskFailed')
 
