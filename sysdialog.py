@@ -10,7 +10,6 @@ import redis
 import time
 from logging.handlers import RotatingFileHandler
 
-
 def follow(thefile):
     global p
     c = 100
@@ -30,7 +29,7 @@ logger = logging.getLogger()
 # set logger level to DEBUG, thus all will be written
 logger.setLevel(logging.DEBUG)
 
-formatter = logging.Formatter('%(asctime)s :: %(levelname)s :: %(message)s')
+formatter = logging.Formatter('%(asctime)s {%(pathname)s:%(lineno)d} :: %(levelname)s :: %(message)s')
 # file in 'append' mode, with 1 backup and a max size set to 10Mo
 file_handler = RotatingFileHandler('/var/log/wapyd/wapyd.log', 'a', 10000000, 1)
 file_handler.setLevel(logging.DEBUG)
@@ -82,10 +81,11 @@ def proj_dir(proj_id):
 
     if not os.path.isfile(projects_path + "/" + proj_id + "/Capfile"):
         try:
-            p = subprocess.Popen(capify_command.split() + " "+ projects_path + "/" + proj_id, shell=False, stdout=subprocess.PIPE,
+            target_dir = projects_path + "/" + proj_id + "/"
+            p = subprocess.Popen(capify_command + " " + target_dir, shell=True, stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT)
-        except OSError:
-            logger.error("Cannot capify dir " + projects_path + "/" + proj_id)
+        except OSError as e:
+            logger.error("Command " + capify_command + " " + target_dir + " Return error: " + e.strerror)
         else:
             logger.info("Capified " + projects_path + "/" + proj_id)
 
